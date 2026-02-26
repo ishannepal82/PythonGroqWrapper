@@ -48,8 +48,4 @@ if __name__ == "__main__":
         prompt="No Make it more Humorous and Informal, feel free to use jokes and even be agressive if you want to."
     )
 
-    if wrapper.stream == True: 
-        for chunks in result:
-            print(chunks)
-
     print(result1, "\n\n", result2)
