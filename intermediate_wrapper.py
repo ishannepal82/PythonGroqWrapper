@@ -7,17 +7,34 @@ from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from crawl4ai import AsyncWebCrawler
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 import os
+
 os.environ["USER_AGENT"] = "Mozilla/5.0 (X11; Linux x86_64)"
 
 load_dotenv(dotenv_path=".env")
 
 base_url = "https://www.saflora.com.np"
-
+class VectorEncoder():
+    def __init__(self):
+        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+    
+    def encode(self, text):
+        res = self.model.encode(text)
+        return res
 class Parser():
     def parse_links(self, html):
         parsed = BeautifulSoup(html, "html.parser")
-        return [link["href"] for link in parsed.find_all("a", href=True)]
+        links = []
+        for link in parsed.find_all("a", href=True):
+            print({ link['href'] : {urljoin(base_url, link['href'])}})
+            links.append({ link['href'] : {urljoin(base_url, link['href'])}})
+        return links
+
+def get_cosine_similarity(vector1, vector2):
+    return cosine_similarity(vector1.reshape(1, -1), vector2.reshape(1, -1))[0][0]
 
 
 class Crawler():
@@ -75,5 +92,22 @@ if __name__ == "__main__":
         parser = Parser()
         parsed_res = parser.parse_links(res.html)
         print(parsed_res)
+        encoder = VectorEncoder()
+        encodings = []
+        for link in parsed_res:
+            keys = list(link.keys())
+            encoded_res = encoder.encode(keys[0])
+            encodings.append(encoded_res)
+
+        prompt = "about"
+        encoded_res = encoder.encode(prompt)
+        vec1 = np.array(encoded_res)
+        vec2 = np.array(encodings)
+        similarity = get_cosine_similarity(
+            vec1, vec2[0]
+        )
+        
+        print(similarity)
+
     
     asyncio.run(main())
