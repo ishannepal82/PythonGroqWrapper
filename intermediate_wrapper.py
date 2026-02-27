@@ -36,7 +36,6 @@ class Parser():
 def get_cosine_similarity(vector1, vector2):
     return cosine_similarity(vector1.reshape(1, -1), vector2.reshape(1, -1))[0][0]
 
-
 class Crawler():
     async def crawl(self, url):
         async with AsyncWebCrawler() as crawler:
