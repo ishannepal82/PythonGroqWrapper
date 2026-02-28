@@ -8,11 +8,15 @@ A Python project that provides AI-powered wrappers using Groq's LLM and various 
 - [Project Structure](#project-structure)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+  - [Linux](#linux)
+  - [Windows](#windows)
 - [Configuration](#configuration)
 - [Modules](#modules)
   - [Basic Wrapper](#basic-wrapper)
   - [Intermediate Wrapper](#intermediate-wrapper)
 - [Running the Programs](#running-the-programs)
+  - [Linux](#linux-1)
+  - [Windows](#windows-1)
 - [Environment Variables](#environment-variables)
 - [Package Versions](#package-versions)
 - [Troubleshooting](#troubleshooting)
@@ -42,44 +46,129 @@ AI Wrapper/
 
 ## Prerequisites
 
-- **Python**: 3.9 or higher (recommended: 3.11)
-- **pip**: Latest version recommended
-- **Groq API Key**: Required for LLM functionality
+| Requirement | Version | Notes |
+|-------------|---------|-------|
+| **Python** | 3.9+ (recommended 3.11) | Required |
+| **pip** | Latest | Required |
+| **Groq API Key** | - | Required for LLM |
+
+### Verify Python Installation
+
+**Linux:**
+```bash
+python3 --version
+pip3 --version
+```
+
+**Windows:**
+```cmd
+python --version
+pip --version
+```
+
+---
 
 ## Installation
 
-### 1. Clone the Repository
+### Linux
+
+#### 1. Navigate to Project Directory
 
 ```bash
 cd "AI Wrapper"
 ```
 
-### 2. Create a Virtual Environment (Recommended)
+#### 2. Create Virtual Environment
 
 ```bash
 python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-### 3. Install Dependencies
+#### 3. Activate Virtual Environment
+
+```bash
+source venv/bin/activate
+```
+
+#### 4. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Install Crawl4AI Browser (Required for intermediate_wrapper.py)
+#### 5. Install Crawl4AI Browser
 
 ```bash
 crawl4ai-setup
 ```
 
-> **Note**: This command downloads and sets up the browser binaries required for web crawling. It may take a few minutes depending on your internet connection.
+> **Note**: This command downloads and sets up browser binaries for web crawling. May take a few minutes.
+
+---
+
+### Windows
+
+#### 1. Navigate to Project Directory
+
+```cmd
+cd "AI Wrapper"
+```
+
+Or using PowerShell:
+```powershell
+Set-Location "AI Wrapper"
+```
+
+#### 2. Create Virtual Environment
+
+```cmd
+python -m venv venv
+```
+
+#### 3. Activate Virtual Environment
+
+```cmd
+venv\Scripts\activate
+```
+
+Or using PowerShell:
+```powershell
+.\venv\Scripts\Activate
+```
+
+#### 4. Install Dependencies
+
+```cmd
+pip install -r requirements.txt
+```
+
+#### 5. Install Crawl4AI Browser
+
+```cmd
+crawl4ai-setup
+```
+
+> **Note**: This command downloads and sets up browser binaries for web crawling. May take a few minutes.
+
+---
 
 ## Configuration
 
 ### Setting Up Environment Variables
 
-The project requires a `.env` file with the following variables:
+Create a `.env` file in the project root with your Groq API key.
+
+**Linux:**
+```bash
+touch .env
+```
+
+**Windows:**
+```cmd
+type nul > .env
+```
+
+Add the following content:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
@@ -93,19 +182,7 @@ GROQ_API_KEY=your_groq_api_key_here
 4. Create a new API key
 5. Copy the key to your `.env` file
 
-### Creating the .env File
-
-Create a `.env` file in the project root:
-
-```bash
-touch .env
-```
-
-Add your API key:
-
-```env
-GROQ_API_KEY=gsk_your_api_key_here
-```
+---
 
 ## Modules
 
@@ -141,12 +218,6 @@ wrapper = ChatGroqWrapper(stream=False)
 # Ask a question
 response = wrapper.ask("Explain the concept of free will in philosophy")
 print(response)
-```
-
-**Running Directly**:
-
-```bash
-python basic_wrapper.py
 ```
 
 ---
@@ -200,33 +271,22 @@ async def main():
 asyncio.run(main())
 ```
 
-**Running Directly**:
-
-```bash
-python intermediate_wrapper.py
-```
-
-The interactive mode accepts:
-- `C` - Continue to ask a question
-- `E` - Exit the program
+---
 
 ## Running the Programs
 
-### Running Basic Wrapper
+### Linux
+
+#### Running Basic Wrapper
 
 ```bash
-python basic_wrapper.py
+python3 basic_wrapper.py
 ```
 
-Expected output:
-```
-# AI will respond with an answer about philosophy/psychology
-```
-
-### Running Intermediate Wrapper
+#### Running Intermediate Wrapper
 
 ```bash
-python intermediate_wrapper.py
+python3 intermediate_wrapper.py
 ```
 
 Interactive mode:
@@ -236,12 +296,49 @@ Enter your Prompt: What products does Saflora offer?
 # AI will crawl the website and provide context-aware response
 ```
 
+---
+
+### Windows
+
+#### Running Basic Wrapper
+
+```cmd
+python basic_wrapper.py
+```
+
+Or:
+```powershell
+python3 basic_wrapper.py
+```
+
+#### Running Intermediate Wrapper
+
+```cmd
+python intermediate_wrapper.py
+```
+
+Or:
+```powershell
+python3 intermediate_wrapper.py
+```
+
+Interactive mode:
+```
+Enter E to exit: C
+Enter your Prompt: What products does Saflora offer?
+# AI will crawl the website and provide context-aware response
+```
+
+---
+
 ## Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `GROQ_API_KEY` | Yes | API key for Groq LLM |
 | `USER_AGENT` | Optional | User agent for web crawling (default: Mozilla/5.0) |
+
+---
 
 ## Package Versions
 
@@ -262,45 +359,94 @@ The following versions are tested and compatible with this project:
 | `groq` | 0.14.0 | Groq API client |
 | `lxml` | 5.3.0 | XML/HTML processing |
 
+---
+
 ## Troubleshooting
 
 ### Import Errors
 
-If you encounter import errors, ensure all dependencies are installed:
+Ensure all dependencies are installed:
 
+**Linux:**
 ```bash
+source venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Windows:**
+```cmd
+venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 ### Crawl4AI Browser Not Found
 
-If you get browser-related errors:
+Run the setup command:
 
+**Linux & Windows:**
 ```bash
 crawl4ai-setup
 ```
 
 ### API Key Issues
 
-Make sure your `.env` file contains the correct `GROQ_API_KEY`:
+Verify your `.env` file:
 
+**Linux:**
 ```bash
 cat .env
 ```
 
+**Windows:**
+```cmd
+type .env
+```
+
+### Virtual Environment Activation Issues
+
+**Linux:**
+```bash
+source venv/bin/activate
+```
+
+**Windows:**
+```cmd
+venv\Scripts\activate
+```
+
+If PowerShell blocks execution, run:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
 ### Version Conflicts
 
-If you experience version conflicts, create a fresh virtual environment:
+Create a fresh virtual environment:
 
+**Linux:**
 ```bash
+rm -rf venv
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+**Windows:**
+```cmd
+rmdir /s /q venv
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+```
+
 ### Memory Issues with sentence-transformers
 
-If you run into memory issues, you can use a lighter model or process in batches. The default model `all-MiniLM-L6-v2` is already lightweight.
+The default model `all-MiniLM-L6-v2` is lightweight. If you still have memory issues, consider:
+- Closing other applications
+- Using a machine with more RAM
+- Processing in smaller batches
+
+---
 
 ## License
 
