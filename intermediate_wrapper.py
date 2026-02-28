@@ -1,11 +1,11 @@
 from langchain_groq import ChatGroq
 from langchain.messages import SystemMessage, HumanMessage 
-from langchain_community.document_loaders import WebBaseLoader
+# from langchain_community.document_loaders import WebBaseLoader (removed)
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.prompts import PromptTemplate
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin
 from crawl4ai import AsyncWebCrawler
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -60,7 +60,7 @@ class SafloraWrapper():
     def __init__(self, stream = False):
         self.stream = stream
         self.llm = ChatGroq(
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             temperature=0.7,
             streaming=self.stream
         )
@@ -86,6 +86,22 @@ class SafloraWrapper():
 if __name__ == "__main__":
     import asyncio
     async def main():
+        crawler = Crawler()
+        res = await crawler.crawl("https://www.saflora.com.np")
+
+        # Parsing the href(links)
+        parser = Parser()
+        parsed_res = parser.parse_links(res.html)
+
+        # Creating Vector Encoding for the Links
+        encoder = VectorEncoder()
+        encodings = []
+        for link in parsed_res:
+            keys = list(link.keys())
+            print(keys)
+            encoded_res = encoder.encode(keys[0])
+            encodings.append(encoded_res)
+
         str = input("Enter E to exit: ")
         while True:
             if str == "E" or str == "e":
@@ -93,25 +109,9 @@ if __name__ == "__main__":
             if str == "C" or str == "c":
                 prompt = input("Enter your Prompt:")
 
-                crawler = Crawler()
-                res = await crawler.crawl("https://www.saflora.com.np")
-
-                # Parsing the href(links)
-                parser = Parser()
-                parsed_res = parser.parse_links(res.html)
-
-                # Creating Vector Encoding for the Links
-                encoder = VectorEncoder()
-                encodings = []
-                for link in parsed_res:
-                    keys = list(link.keys())
-                    print(keys)
-                    encoded_res = encoder.encode(keys[0])
-                    encodings.append(encoded_res)
-                
                 # Creating Encoding for the Prompt
-                encoded_res = encoder.encode(prompt)
-                vec1 = np.array(encoded_res)
+                encoded_prompt = encoder.encode(prompt)
+                vec1 = np.array(encoded_prompt)
                 vec2 = np.array(encodings)
 
                 # Claculating Cosine Similarity
@@ -137,7 +137,4 @@ if __name__ == "__main__":
             else:
                 print("Invalid Input")
                     
-                
-
-
     asyncio.run(main())
