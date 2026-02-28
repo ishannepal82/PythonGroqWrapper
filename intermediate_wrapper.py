@@ -10,10 +10,10 @@ from crawl4ai import AsyncWebCrawler
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import re 
 import os
 
 os.environ["USER_AGENT"] = "Mozilla/5.0 (X11; Linux x86_64)"
-
 load_dotenv(dotenv_path=".env")
 
 base_url = "https://www.saflora.com.np"
@@ -29,12 +29,13 @@ class Parser():
         parsed = BeautifulSoup(html, "html.parser")
         links = []
         for link in parsed.find_all("a", href=True):
-            print({ link['href'] : {urljoin(base_url, link['href'])}})
-            links.append({ link['href'] : {urljoin(base_url, link['href'])}})
+            print({ link['href'] : urljoin(base_url, link['href'])})
+            formatted_link = re.sub('.html', '', link["href"])
+            links.append({ formatted_link: urljoin(base_url, link['href'])})
         return links
 
 def get_cosine_similarity(vector1, vector2):
-    return cosine_similarity(vector1.reshape(1, -1), vector2.reshape(1, -1))[0][0]
+    return cosine_similarity(vector1.reshape(1, -1), vector2)
 
 class Crawler():
     async def crawl(self, url):
@@ -64,13 +65,14 @@ class SafloraWrapper():
             streaming=self.stream
         )
         self.system = SystemMessage(content="You are a professional ai assistant for Saflora.Your domain is Saflora only if asked about any other subjects you will politely refuse to answer. You will only answer the questions related to Saflora. If the question is not related to Saflora, you will politely refuse to answer.")
-        self.prompt = PromptTemplate.from_template("question:{prompt}")
+        self.prompt = PromptTemplate.from_template("question:{prompt}, context:{context}")
 
         self.history = [self.system]
 
-    def ask(self, message):
+    def ask(self, message, context):
         formatted = self.prompt.format(
             prompt=message,
+            context=context
         )
         user_message = HumanMessage(content=formatted)
 
@@ -83,30 +85,59 @@ class SafloraWrapper():
 
 if __name__ == "__main__":
     import asyncio
-
     async def main():
-        crawler = Crawler()
-        res = await crawler.crawl("https://www.saflora.com.np")
-        print(res.html)
-        parser = Parser()
-        parsed_res = parser.parse_links(res.html)
-        print(parsed_res)
-        encoder = VectorEncoder()
-        encodings = []
-        for link in parsed_res:
-            keys = list(link.keys())
-            encoded_res = encoder.encode(keys[0])
-            encodings.append(encoded_res)
+        str = input("Enter E to exit: ")
+        while True:
+            if str == "E" or str == "e":
+                break
+            if str == "C" or str == "c":
+                prompt = input("Enter your Prompt:")
 
-        prompt = "about"
-        encoded_res = encoder.encode(prompt)
-        vec1 = np.array(encoded_res)
-        vec2 = np.array(encodings)
-        similarity = get_cosine_similarity(
-            vec1, vec2[0]
-        )
-        
-        print(similarity)
+                crawler = Crawler()
+                res = await crawler.crawl("https://www.saflora.com.np")
 
-    
+                # Parsing the href(links)
+                parser = Parser()
+                parsed_res = parser.parse_links(res.html)
+
+                # Creating Vector Encoding for the Links
+                encoder = VectorEncoder()
+                encodings = []
+                for link in parsed_res:
+                    keys = list(link.keys())
+                    print(keys)
+                    encoded_res = encoder.encode(keys[0])
+                    encodings.append(encoded_res)
+                
+                # Creating Encoding for the Prompt
+                encoded_res = encoder.encode(prompt)
+                vec1 = np.array(encoded_res)
+                vec2 = np.array(encodings)
+
+                # Claculating Cosine Similarity
+                similarities = []
+                for i, vec in enumerate(vec2):
+                    similarity = get_cosine_similarity(
+                    vec1, vec.reshape(1, -1)
+                )
+                    similarities.append(similarity[0][0])
+                
+                # Comparing the Similarity with parsed_links 
+                max_similar = max(similarities)
+                max_index = similarities.index(max_similar)
+
+                # Getting the link of the most similar link
+                url_to_parse = list(parsed_res[max_index].values())[0]
+                res = await crawler.crawl(url_to_parse)
+                
+                # Asking ai to answer the Prompt with the context of the contents fetched from the link
+                wrapper = SafloraWrapper(stream=False)
+                result = wrapper.ask(prompt, context = res.html)
+                print(result)
+            else:
+                print("Invalid Input")
+                    
+                
+
+
     asyncio.run(main())
