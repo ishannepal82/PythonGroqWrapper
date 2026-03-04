@@ -60,18 +60,18 @@ class SafloraWrapper():
     def __init__(self, stream = False):
         self.stream = stream
         self.llm = ChatGroq(
-            model="llama-3.3-70b-versatile",
+            model="llama-3.1-8b-instant",
             temperature=0.7,
             streaming=self.stream
         )
         self.system = SystemMessage(content="You are a professional ai assistant for Saflora.Your domain is Saflora only if asked about any other subjects you will politely refuse to answer. You will only answer the questions related to Saflora. If the question is not related to Saflora, you will politely refuse to answer.")
-        self.prompt = PromptTemplate.from_template("question:{prompt}, context:{context}")
+        self.prompt = PromptTemplate.from_template("question:{prompt}, context:{context}, check the history if you can't find the answer in the context.")
 
         self.history = [self.system]
 
-    def ask(self, message, context):
+    def ask(self, prompt, context):
         formatted = self.prompt.format(
-            prompt=message,
+            prompt=prompt,
             context=context
         )
         user_message = HumanMessage(content=formatted)
@@ -79,6 +79,7 @@ class SafloraWrapper():
         self.history.append(user_message)
         response = self.llm.invoke(self.history)
         self.history.append(response)
+        print(self.history)
 
         return response.content
     
@@ -93,6 +94,9 @@ if __name__ == "__main__":
         parser = Parser()
         parsed_res = parser.parse_links(res.html)
 
+        # Asking the Ai to Create a json tree like struct of the Links
+        wrapper = SafloraWrapper(stream=False)
+
         # Creating Vector Encoding for the Links
         encoder = VectorEncoder()
         encodings = []
@@ -101,6 +105,8 @@ if __name__ == "__main__":
             print(keys)
             encoded_res = encoder.encode(keys[0])
             encodings.append(encoded_res)
+
+        
 
         str = input("Enter E to exit: ")
         while True:
@@ -125,13 +131,14 @@ if __name__ == "__main__":
                 # Comparing the Similarity with parsed_links 
                 max_similar = max(similarities)
                 max_index = similarities.index(max_similar)
+                print(max_index)
 
                 # Getting the link of the most similar link
                 url_to_parse = list(parsed_res[max_index].values())[0]
                 res = await crawler.crawl(url_to_parse)
+                print(res.html)
                 
                 # Asking ai to answer the Prompt with the context of the contents fetched from the link
-                wrapper = SafloraWrapper(stream=False)
                 result = wrapper.ask(prompt, context = res.html)
                 print(result)
             else:
