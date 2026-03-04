@@ -15,8 +15,8 @@ class LlmClassifier:
 
         self.system = System(content="You are an Text Classifier, Classifiy the given prompt as either Philosophy or Non-Philosophy.Reply in one word 'yes' or 'no.")
     
-    def classify(self, question, style):
-        prompt = Human(content=prompt)
+    def classify(self, question):
+        prompt = Human(content=question)
         resp = self.llm.invoke([
             self.system,
             prompt
@@ -43,15 +43,16 @@ class AIWrapper:
 
 def main():
      # TODO: See TODO.md
-     classifier = LlmClassifier()
-     wrapper = AIWrapper()
+     classifier = LlmClassifier(model="llama-3.3-70b-versatile")
+     wrapper = AIWrapper(model="llama-3.3-70b-versatile")
      while True:
+            str = input("Enter your Choice:")
             if str == "E" or str == "e":
                 break
             if str == "C" or str == "c":
                 prompt = input("Enter your Prompt:")
                 resp = classifier.classify(prompt)
-                if resp.strip().lower() == "yes":
+                if resp.content.strip().lower() == "yes":
                     resp = wrapper.ask(question=prompt)
                     print(f"The AI Replied: {resp}")
                 else: 
